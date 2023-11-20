@@ -9,8 +9,10 @@ const bootstrap = async () => {
         logger: ['error', 'warn'],
     });
 
+    app.setGlobalPrefix('api');
+
     await app.listen(2333, () => {
-        console.log('api: http://localhost:2333');
+        console.log('api: http://localhost:2333/api');
     });
 };
 

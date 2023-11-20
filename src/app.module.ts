@@ -1,20 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { database } from '@/config';
 import { ContentModule } from '@/modules/content/content.module';
+import { CoreModule } from '@/modules/core/core.module';
+import { DatabaseModule } from '@/modules/database/database.module';
 import { WelcomeModule } from '@/modules/welcome/welcome.module';
 
-import { CoreModule } from './modules/core/core.module';
-
 @Module({
-    imports: [
-        ContentModule,
-        WelcomeModule,
-        CoreModule.forRoot({
-            config: {
-                name: '欢迎访问 Ink NestJS API !',
-            },
-        }),
-    ],
+    imports: [DatabaseModule.forRoot(database), ContentModule, WelcomeModule, CoreModule.forRoot()],
     controllers: [],
     providers: [],
 })

@@ -1,24 +1,38 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseUUIDPipe,
+    Patch,
+    Post,
+    Query,
+    ValidationPipe,
+} from '@nestjs/common';
 
-import { CreatePostDto, UpdatePostDto } from '../dtos';
-import { PostService } from '../services';
+import { PostService } from '@/modules/content/services';
+import { PaginateOptions } from '@/modules/database/types';
 
 /**
  * 文章控制器
  * 负责处理与文章相关的请求，如获取文章列表、创建新文章等。
  */
-@Controller('post')
+@Controller('posts')
 export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
-    async index() {
-        return this.postService.findAll();
+    async list(
+        @Query()
+        options: PaginateOptions,
+    ) {
+        return this.postService.paginate(options);
     }
 
     @Get(':id')
-    async show(@Param('id') id: number) {
-        return this.postService.findOne(id);
+    async detail(@Param('id', new ParseUUIDPipe()) id: string) {
+        return this.postService.detail(id);
     }
 
     @Post()
@@ -32,7 +46,7 @@ export class PostController {
                 groups: ['create'],
             }),
         )
-        data: CreatePostDto,
+        data: RecordAny,
     ) {
         return this.postService.create(data);
     }
@@ -48,13 +62,13 @@ export class PostController {
                 groups: ['update'],
             }),
         )
-        data: UpdatePostDto,
+        data: RecordAny,
     ) {
         return this.postService.update(data);
     }
 
     @Delete(':id')
-    async delete(@Param('id') id: number) {
+    async delete(@Param('id', new ParseUUIDPipe()) id: string) {
         return this.postService.delete(id);
     }
 }
