@@ -46,6 +46,14 @@ export class QueryPostDto implements PaginateOptions {
     @IsNumber()
     @IsOptional()
     limit: 10;
+
+    @IsUUID(undefined, { message: '分类ID必须是UUID' })
+    @IsOptional()
+    category?: string;
+
+    @IsUUID(undefined, { message: '标签ID必须是UUID' })
+    @IsOptional()
+    tag?: string;
 }
 
 /**
@@ -93,6 +101,19 @@ export class CreatePostDto {
     @IsNumber(undefined, { always: true })
     @IsOptional({ always: true })
     customOrder = 0;
+
+    @IsUUID(undefined, { message: '分类ID必须是UUID', each: true, always: true })
+    @IsOptional({ groups: ['update'] })
+    category: string;
+
+    @IsUUID(undefined, {
+        each: true,
+        always: true,
+        message: '每个标签ID必须是UUID',
+    })
+    @IsNotEmpty({ groups: ['create'], message: '至少需要一个标签' })
+    @IsOptional({ always: true })
+    tags?: string[];
 }
 
 /**
