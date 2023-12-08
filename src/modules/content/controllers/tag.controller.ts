@@ -9,15 +9,11 @@ import {
     Post,
     Query,
     SerializeOptions,
-    UseInterceptors,
-    ValidationPipe,
 } from '@nestjs/common';
 
 import { CreateTagDto, QueryCategoryDto, UpdateTagDto } from '@/modules/content/dtos';
 import { TagService } from '@/modules/content/services';
-import { AppIntercepter } from '@/modules/core/providers';
 
-@UseInterceptors(AppIntercepter)
 @Controller('tags')
 export class TagController {
     constructor(protected service: TagService) {}
@@ -25,15 +21,7 @@ export class TagController {
     @Get()
     @SerializeOptions({})
     async list(
-        @Query(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-            }),
-        )
+        @Query()
         options: QueryCategoryDto,
     ) {
         return this.service.paginate(options);
@@ -51,16 +39,7 @@ export class TagController {
     @Post()
     @SerializeOptions({})
     async store(
-        @Body(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-                groups: ['create'],
-            }),
-        )
+        @Body()
         data: CreateTagDto,
     ) {
         return this.service.create(data);
@@ -69,16 +48,7 @@ export class TagController {
     @Patch()
     @SerializeOptions({})
     async update(
-        @Body(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-                groups: ['update'],
-            }),
-        )
+        @Body()
         data: UpdateTagDto,
     ) {
         return this.service.update(data);

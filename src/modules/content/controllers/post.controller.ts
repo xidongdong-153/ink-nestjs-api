@@ -9,19 +9,16 @@ import {
     Post,
     Query,
     SerializeOptions,
-    UseInterceptors,
-    ValidationPipe,
 } from '@nestjs/common';
 
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
 import { PostService } from '@/modules/content/services';
-import { AppIntercepter } from '@/modules/core/providers';
 
 /**
  * 文章控制器
  * 负责处理与文章相关的请求，如获取文章列表、创建新文章等。
  */
-@UseInterceptors(AppIntercepter)
+
 @Controller('posts')
 export class PostController {
     constructor(private postService: PostService) {}
@@ -29,15 +26,7 @@ export class PostController {
     @Get()
     @SerializeOptions({ groups: ['post-list'] })
     async list(
-        @Query(
-            new ValidationPipe({
-                transform: true,
-                whitelist: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-            }),
-        )
+        @Query()
         options: QueryPostDto,
     ) {
         return this.postService.paginate(options);
@@ -52,15 +41,7 @@ export class PostController {
     @Post()
     @SerializeOptions({ groups: ['post-detail'] })
     async store(
-        @Body(
-            new ValidationPipe({
-                transform: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-                groups: ['create'],
-            }),
-        )
+        @Body()
         data: CreatePostDto,
     ) {
         return this.postService.create(data);
@@ -69,15 +50,7 @@ export class PostController {
     @Patch()
     @SerializeOptions({ groups: ['post-detail'] })
     async update(
-        @Body(
-            new ValidationPipe({
-                transform: true,
-                forbidNonWhitelisted: true,
-                forbidUnknownValues: true,
-                validationError: { target: false },
-                groups: ['update'],
-            }),
-        )
+        @Body()
         data: UpdatePostDto,
     ) {
         return this.postService.update(data);
