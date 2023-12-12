@@ -50,6 +50,9 @@ dependencies:
   typeorm:
     specifier: ^0.3.17
     version: 0.3.17(better-sqlite3@9.2.2)(ts-node@10.9.2)
+  validator:
+    specifier: ^13.11.0
+    version: 13.11.0
 
 devDependencies:
   '@nestjs/cli':
@@ -82,6 +85,9 @@ devDependencies:
   '@types/supertest':
     specifier: ^2.0.16
     version: 2.0.16
+  '@types/validator':
+    specifier: ^13.11.7
+    version: 13.11.7
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.14.0
     version: 6.14.0(@typescript-eslint/parser@6.14.0)(eslint@8.55.0)(typescript@5.3.3)

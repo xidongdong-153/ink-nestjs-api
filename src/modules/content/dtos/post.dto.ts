@@ -18,8 +18,10 @@ import {
 import { isNil, toNumber } from 'lodash';
 
 import { PostOrderType } from '@/modules/content/constants';
+import { CategoryEntity, TagEntity } from '@/modules/content/entities';
 import { DtoValidation } from '@/modules/core/decorators';
 import { toBoolean } from '@/modules/core/helpers';
+import { IsDataExist } from '@/modules/database/constraints';
 import { PaginateOptions } from '@/modules/database/types';
 
 /**
@@ -49,10 +51,18 @@ export class QueryPostDto implements PaginateOptions {
     @IsOptional()
     limit: 10;
 
+    @IsDataExist(CategoryEntity, {
+        always: true,
+        message: '分类不存在',
+    })
     @IsUUID(undefined, { message: '分类ID必须是UUID' })
     @IsOptional()
     category?: string;
 
+    @IsDataExist(TagEntity, {
+        always: true,
+        message: '标签不存在',
+    })
     @IsUUID(undefined, { message: '标签ID必须是UUID' })
     @IsOptional()
     tag?: string;
@@ -105,10 +115,18 @@ export class CreatePostDto {
     @IsOptional({ always: true })
     customOrder = 0;
 
+    @IsDataExist(CategoryEntity, {
+        message: '分类不存在',
+    })
     @IsUUID(undefined, { message: '分类ID必须是UUID', each: true, always: true })
     @IsOptional({ groups: ['update'] })
     category: string;
 
+    @IsDataExist(TagEntity, {
+        each: true,
+        always: true,
+        message: '标签不存在',
+    })
     @IsUUID(undefined, {
         each: true,
         always: true,
