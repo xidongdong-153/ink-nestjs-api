@@ -14,6 +14,16 @@ export class CategoryRepository extends TreeRepository<CategoryEntity> {
     }
 
     /**
+     * 树形结构查询
+     * @param options
+     */
+    async findTrees(options?: FindTreeOptions) {
+        const roots = await this.findRoots(options);
+        await Promise.all(roots.map((root) => this.findDescendantsTree(root, options)));
+        return roots;
+    }
+
+    /**
      * 查询顶级分类
      * @param options
      */

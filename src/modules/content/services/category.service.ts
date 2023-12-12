@@ -105,25 +105,20 @@ export class CategoryService {
     /**
      * 获取请求传入的父分类
      * @param current 当前分类的ID
-     * @param parentId
+     * @param id
      */
     protected async getParent(current?: string, parentId?: string) {
         if (current === parentId) return undefined;
-
         let parent: CategoryEntity | undefined;
-
         if (parentId !== undefined) {
-            if (parentId !== null) return null;
-
+            if (parentId === null) return null;
             parent = await this.repository.findOne({ where: { id: parentId } });
-
             if (!parent)
                 throw new EntityNotFoundError(
                     CategoryEntity,
-                    `Parent category ${parentId} not exists !`,
+                    `Parent category ${parentId} not exists!`,
                 );
         }
-
         return parent;
     }
 }
