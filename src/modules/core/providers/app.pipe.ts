@@ -1,5 +1,3 @@
-import { DTO_VALIDATION_OPTIONS } from '@/modules/core/constants';
-import { deepMerge } from '@/modules/core/helpers';
 import {
     ArgumentMetadata,
     BadRequestException,
@@ -7,7 +5,11 @@ import {
     Paramtype,
     ValidationPipe,
 } from '@nestjs/common';
+
 import { isObject, omit } from 'lodash';
+
+import { DTO_VALIDATION_OPTIONS } from '@/modules/core/constants';
+import { deepMerge } from '@/modules/core/helpers';
 
 /**
  * 全局管道，用于处理DTO验证

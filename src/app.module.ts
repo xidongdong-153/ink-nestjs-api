@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+
 import { database } from '@/config';
 import { ContentModule } from '@/modules/content/content.module';
 import { CoreModule } from '@/modules/core/core.module';
 import { AppFilter, AppIntercepter, AppPipe } from '@/modules/core/providers';
 import { DatabaseModule } from '@/modules/database/database.module';
 import { WelcomeModule } from '@/modules/welcome/welcome.module';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 
 @Module({
     imports: [DatabaseModule.forRoot(database), ContentModule, WelcomeModule, CoreModule.forRoot()],
