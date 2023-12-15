@@ -207,7 +207,7 @@ export class PostService {
                     .orderBy('post.createdAt', 'DESC')
                     .addOrderBy('post.updatedAt', 'DESC')
                     .addOrderBy('post.publishedAt', 'DESC')
-                    .addOrderBy('post.commentCount', 'DESC');
+                    .addOrderBy('commentCount', 'DESC');
         }
     }
 
