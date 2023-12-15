@@ -10,6 +10,7 @@ import { PostEntity } from '@/modules/content/entities';
 import { CategoryRepository, PostRepository, TagRepository } from '@/modules/content/repositories';
 
 import { CategoryService } from '@/modules/content/services/category.service';
+import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';
 import { QueryHook } from '@/modules/database/types';
 
@@ -108,9 +109,45 @@ export class PostService {
      * 删除文章
      * @param id
      */
-    async delete(id: string) {
-        const item = await this.repository.findOneByOrFail({ id });
-        return this.repository.remove(item);
+    async delete(ids: string[], trash?: boolean) {
+        const items = await this.repository.find({
+            where: { id: In(ids) } as any,
+            withDeleted: true,
+        });
+
+        if (trash) {
+            // 对已软删除的数据再次删除时直接通过remove方法从数据库中清除
+            const directs = items.filter((item) => !isNil(item.deletedAt));
+            const softs = items.filter((item) => isNil(item.deletedAt));
+
+            return [
+                ...(await this.repository.remove(directs)),
+                ...(await this.repository.softRemove(softs)),
+            ];
+        }
+
+        return this.repository.remove(items);
+    }
+
+    /**
+     * 恢复文章
+     * @param ids
+     */
+    async restore(ids: string[]) {
+        const items = await this.repository.find({
+            where: { id: In(ids) } as any,
+            withDeleted: true,
+        });
+        // 过滤掉不在回收站中的数据
+        const trasheds = items.filter((item) => !isNil(item)).map((item) => item.id);
+
+        if (trasheds.length < 1) return [];
+
+        await this.repository.restore(trasheds);
+        const qb = await this.buildListQuery(this.repository.buildBaseQB(), {}, async (qbuilder) =>
+            qbuilder.andWhereInIds(trasheds),
+        );
+        return qb.getMany();
     }
 
     /**
@@ -124,7 +161,12 @@ export class PostService {
         options: FindParams,
         callback?: QueryHook<PostEntity>,
     ) {
-        const { category, tag, orderBy, isPublished } = options;
+        const { category, tag, orderBy, isPublished, trashed = SelectTrashMode.NONE } = options;
+
+        if (trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY) {
+            qb.withDeleted();
+            if (trashed === SelectTrashMode.ONLY) qb.where(`post.deletedAt is not null`);
+        }
         if (typeof isPublished === 'boolean') {
             isPublished
                 ? qb.where({

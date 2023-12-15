@@ -13,6 +13,7 @@ import {
 
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
 import { PostService } from '@/modules/content/services';
+import { DeleteDto, DeleteWithTrashDto } from '@/modules/restful/dtos';
 
 /**
  * 文章控制器
@@ -56,9 +57,19 @@ export class PostController {
         return this.postService.update(data);
     }
 
-    @Delete(':id')
+    @Delete()
     @SerializeOptions({ groups: ['post-detail'] })
-    async delete(@Param('id', new ParseUUIDPipe()) id: string) {
-        return this.postService.delete(id);
+    async delete(@Body() data: DeleteWithTrashDto) {
+        const { ids, trash } = data;
+
+        return this.postService.delete(ids, trash);
+    }
+
+    @Patch('restore')
+    @SerializeOptions({ groups: ['post-detail'] })
+    async restore(@Body() data: DeleteDto) {
+        const { ids } = data;
+
+        return this.postService.restore(ids);
     }
 }

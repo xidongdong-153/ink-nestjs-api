@@ -17,7 +17,7 @@ export const database = (): TypeOrmModuleOptions => ({
     // database: 'ink_apps',
     // 以下为sqlite配置
     type: 'better-sqlite3',
-    database: resolve(__dirname, '../../back/database6.db'),
+    database: resolve(__dirname, '../../back/database9.db'),
     synchronize: true,
     autoLoadEntities: true,
 });

@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common';
 
-import { omit } from 'lodash';
+import { isNil, omit } from 'lodash';
+
+import { In, SelectQueryBuilder } from 'typeorm';
 
 import { CreateTagDto, QueryTagsDto, UpdateTagDto } from '@/modules/content/dtos';
+import { TagEntity } from '@/modules/content/entities';
 import { TagRepository } from '@/modules/content/repositories';
+import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';
+import { QueryHook } from '@/modules/database/types';
+
+type FindParams = {
+    [key in keyof Omit<QueryTagsDto, 'limit' | 'page'>]: QueryTagsDto[key];
+};
 
 /**
  * 标签数据操作
@@ -19,7 +28,7 @@ export class TagService {
      * @param callback 添加额外的查询
      */
     async paginate(options: QueryTagsDto) {
-        const qb = this.repository.buildBaseQB();
+        const qb = await this.buildListQuery(this.repository.buildBaseQB(), options);
         return paginate(qb, options);
     }
 
@@ -54,10 +63,64 @@ export class TagService {
 
     /**
      * 删除标签
-     * @param id
+     * @param ids
      */
-    async delete(id: string) {
-        const item = await this.repository.findOneByOrFail({ id });
-        return this.repository.remove(item);
+    async delete(ids: string[], trash: boolean) {
+        const items = await this.repository.find({
+            where: { id: In(ids) } as any,
+            withDeleted: true,
+        });
+
+        if (trash) {
+            const directs = items.filter((item) => !isNil(item.deletedAt));
+            const sorts = items.filter((item) => isNil(item.deletedAt));
+
+            return [
+                ...(await this.repository.remove(directs)),
+                ...(await this.repository.softRemove(sorts)),
+            ];
+        }
+
+        return this.repository.remove(items);
+    }
+
+    /**
+     * 软删除标签
+     * @param ids
+     */
+    async restore(ids: string[]) {
+        const items = await this.repository.find({
+            where: { id: In(ids) } as any,
+            withDeleted: true,
+        });
+
+        // 过滤掉不在回收站的标签
+        const trashed = items.filter((item) => !isNil(item.deletedAt)).map((item) => item.id);
+        if (trashed.length < 1) return trashed;
+        await this.repository.restore(trashed);
+        const qb = this.repository.buildBaseQB().where({ id: In(trashed) });
+        return qb.getMany();
+    }
+
+    /**
+     * 构建标签列表查询器(需要查到软删除)
+     * @param qb
+     * @param options
+     * @param callback
+     */
+    protected async buildListQuery(
+        qb: SelectQueryBuilder<TagEntity>,
+        options: FindParams,
+        callback?: QueryHook<TagEntity>,
+    ) {
+        const { trashed } = options;
+
+        if (trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY) {
+            qb.withDeleted();
+            if (trashed === SelectTrashMode.ONLY) qb.where(`tag.deletedAt IS NOT NULL`);
+        }
+
+        if (callback) return callback(qb);
+        return qb;
     }
 }

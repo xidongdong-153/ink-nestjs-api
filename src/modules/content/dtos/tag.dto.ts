@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
     IsDefined,
+    IsEnum,
     IsNotEmpty,
     IsNumber,
     IsOptional,
@@ -12,6 +13,7 @@ import {
 import { toNumber } from 'lodash';
 
 import { DtoValidation } from '@/modules/core/decorators';
+import { SelectTrashMode } from '@/modules/database/constants';
 import { PaginateOptions } from '@/modules/database/types';
 
 /**
@@ -19,6 +21,10 @@ import { PaginateOptions } from '@/modules/database/types';
  */
 @DtoValidation({ type: 'query' })
 export class QueryTagsDto implements PaginateOptions {
+    @IsEnum(SelectTrashMode)
+    @IsOptional()
+    trashed?: SelectTrashMode;
+
     @Transform(({ value }) => toNumber(value))
     @Min(1, { message: '当前页数必须大于1' })
     @IsNumber()

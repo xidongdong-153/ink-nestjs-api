@@ -1,5 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
-import { Column, Entity, ManyToMany, PrimaryColumn, Relation } from 'typeorm';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { Column, DeleteDateColumn, Entity, ManyToMany, PrimaryColumn, Relation } from 'typeorm';
 
 import { PostEntity } from '@/modules/content/entities/post.entity';
 
@@ -26,4 +26,11 @@ export class TagEntity {
      */
     @Expose()
     postCount: number;
+
+    @Expose()
+    @Type(() => Date)
+    @DeleteDateColumn({
+        comment: '删除时间',
+    })
+    deletedAt: Date;
 }

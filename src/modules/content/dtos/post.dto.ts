@@ -21,6 +21,7 @@ import { PostOrderType } from '@/modules/content/constants';
 import { CategoryEntity, TagEntity } from '@/modules/content/entities';
 import { DtoValidation } from '@/modules/core/decorators';
 import { toBoolean } from '@/modules/core/helpers';
+import { SelectTrashMode } from '@/modules/database/constants';
 import { IsDataExist } from '@/modules/database/constraints';
 import { PaginateOptions } from '@/modules/database/types';
 
@@ -66,6 +67,10 @@ export class QueryPostDto implements PaginateOptions {
     @IsUUID(undefined, { message: '标签ID必须是UUID' })
     @IsOptional()
     tag?: string;
+
+    @IsEnum(SelectTrashMode)
+    @IsOptional()
+    trashed?: SelectTrashMode;
 }
 
 /**
