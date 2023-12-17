@@ -1,5 +1,13 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { Column, DeleteDateColumn, Entity, ManyToMany, PrimaryColumn, Relation } from 'typeorm';
+import {
+    Column,
+    DeleteDateColumn,
+    Entity,
+    Index,
+    ManyToMany,
+    PrimaryColumn,
+    Relation,
+} from 'typeorm';
 
 import { PostEntity } from '@/modules/content/entities/post.entity';
 
@@ -11,21 +19,13 @@ export class TagEntity {
     id: string;
 
     @Expose()
-    @Column({ comment: '标签名称' })
+    @Column({ comment: '分类名称' })
+    @Index({ fulltext: true })
     name: string;
 
     @Expose()
     @Column({ comment: '标签描述', nullable: true })
     description?: string;
-
-    @ManyToMany(() => PostEntity, (post) => post.tags)
-    posts: Relation<PostEntity[]>;
-
-    /**
-     * 通过QueryBuilder生成的文章数量(虚拟字段)
-     */
-    @Expose()
-    postCount: number;
 
     @Expose()
     @Type(() => Date)
@@ -33,4 +33,13 @@ export class TagEntity {
         comment: '删除时间',
     })
     deletedAt: Date;
+
+    /**
+     * 通过queryBuilder生成的文章数量(虚拟字段)
+     */
+    @Expose()
+    postCount: number;
+
+    @ManyToMany(() => PostEntity, (post) => post.tags)
+    posts: Relation<PostEntity[]>;
 }

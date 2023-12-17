@@ -18,8 +18,8 @@ const bootstrap = async () => {
         fallbackOnErrors: true,
     });
 
-    await app.listen(2333, () => {
-        console.log('api: http://localhost:2333/api');
+    await app.listen(3100, () => {
+        console.log('api: http://localhost:3100/api');
     });
 };
 

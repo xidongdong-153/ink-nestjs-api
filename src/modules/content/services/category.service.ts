@@ -23,7 +23,6 @@ export class CategoryService {
 
     /**
      * 查询分类树
-     * @param options
      */
     async findTrees(options: QueryCategoryTreeDto) {
         const { trashed = SelectTrashMode.NONE } = options;

@@ -92,7 +92,7 @@ export class CategoryRepository extends TreeRepository<CategoryEntity> {
             withTrashed?: boolean;
         },
     ) {
-        const qb = this.createAncestorsQueryBuilder('category', 'treeClosure', entity);
+        const qb = this.createDescendantsQueryBuilder('category', 'treeClosure', entity);
         FindOptionsUtils.applyOptionsToTreeQueryBuilder(qb, options);
         qb.orderBy('category.customOrder', 'ASC');
 
@@ -145,7 +145,7 @@ export class CategoryRepository extends TreeRepository<CategoryEntity> {
     }
 
     /**
-     * 统计后代元素数量
+     * 统计祖先元素数量
      * @param entity
      * @param options
      */
@@ -157,7 +157,7 @@ export class CategoryRepository extends TreeRepository<CategoryEntity> {
 
         if (options?.withTrashed) {
             qb.withDeleted();
-            if (options?.onlyTrashed) qb.where(`category.deleteAt IS NOT NULL`);
+            if (options?.onlyTrashed) qb.where(`category.deletedAt IS NOT NULL`);
         }
 
         return qb.getCount();
