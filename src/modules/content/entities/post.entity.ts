@@ -102,9 +102,7 @@ export class PostEntity extends BaseEntity {
     category: Relation<CategoryEntity>;
 
     @Expose()
-    @ManyToMany(() => TagEntity, (tag) => tag.posts, {
-        cascade: true,
-    })
+    @ManyToMany(() => TagEntity, (tag) => tag.posts)
     @JoinTable()
     tags: Relation<TagEntity>[];
 

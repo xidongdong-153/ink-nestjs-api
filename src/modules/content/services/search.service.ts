@@ -23,41 +23,48 @@ async function getPostData(
     cmtRepo: CommentRepository,
     post: PostEntity,
 ) {
-    const categories = [
-        ...(await catRepo.findAncestors(post.category)).map((item) => {
-            return {
+    let categories: { id: string; name: string }[] = [];
+    if (post.category) {
+        categories = [
+            ...(await catRepo.findAncestors(post.category)).map((item) => ({
                 id: item.id,
                 name: item.name,
-            };
-        }),
-        { id: post.category.id, name: post.category.name },
-    ];
+            })),
+            { id: post.category.id, name: post.category.name },
+        ];
+    }
 
-    const comments = (
+    let comments: { id: string; body: string }[] = [];
+
+    comments = (
         await cmtRepo.find({
             relations: ['post'],
             where: { post: { id: post.id } },
         })
     ).map((item) => ({ id: item.id, body: item.body }));
 
-    return [
-        {
-            ...pick(instanceToPlain(post), [
-                'id',
-                'title',
-                'body',
-                'summary',
-                'commentCount',
-                'deletedAt',
-                'publishedAt',
-                'createdAt',
-                'updatedAt',
-            ]),
-            categories,
-            tags: post.tags.map((item) => ({ id: item.id, name: item.name })),
-            comments,
-        },
-    ];
+    let tags: { id: string; name: string }[] = [];
+    if (post.tags) {
+        tags = post.tags.map((item) => ({ id: item.id, name: item.name }));
+    }
+
+    return {
+        ...pick(instanceToPlain(post), [
+            'id',
+            'title',
+            'body',
+            'summary',
+            'commentCount',
+            'deletedAt',
+            'publishedAt',
+            'createdAt',
+            'updatedAt',
+        ]),
+        body: post.body,
+        categories,
+        tags,
+        comments,
+    };
 }
 
 @Injectable()
@@ -101,7 +108,6 @@ export class SearchService {
             sort: ['updatedAt:desc', 'commentCount:desc'],
             filter,
         });
-
         return {
             items: result.hits,
             currentPage: result.page,
@@ -115,19 +121,18 @@ export class SearchService {
     async create(post: PostEntity) {
         return this.client
             .index(this.index)
-            .addDocuments(await getPostData(this.categoryRepository, this.commentRepository, post));
+            .addDocuments([
+                await getPostData(this.categoryRepository, this.commentRepository, post),
+            ]);
     }
 
     async update(posts: PostEntity[]) {
-        return this.client
-            .index(this.index)
-            .updateDocuments(
-                await Promise.all(
-                    posts.map((post) =>
-                        getPostData(this.categoryRepository, this.commentRepository, post),
-                    ),
-                ),
-            );
+        const payload = await Promise.all(
+            posts?.map((post) =>
+                getPostData(this.categoryRepository, this.commentRepository, post),
+            ),
+        );
+        return this.client.index(this.index).updateDocuments(payload);
     }
 
     async delete(ids: string[]) {

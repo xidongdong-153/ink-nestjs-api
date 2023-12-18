@@ -7,11 +7,17 @@ import { EntityNotFoundError, In, IsNull, Not, SelectQueryBuilder } from 'typeor
 import { PostOrderType } from '@/modules/content/constants';
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
 import { PostEntity } from '@/modules/content/entities';
-import { CategoryRepository, PostRepository, TagRepository } from '@/modules/content/repositories';
+import {
+    CategoryRepository,
+    CommentRepository,
+    PostRepository,
+    TagRepository,
+} from '@/modules/content/repositories';
 
 import { CategoryService } from '@/modules/content/services/category.service';
 import { SearchService } from '@/modules/content/services/search.service';
 import { SearchType } from '@/modules/content/types';
+import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';
 import { QueryHook } from '@/modules/database/types';
@@ -20,16 +26,24 @@ type FindParams = {
     [key in keyof Omit<QueryPostDto, 'limit' | 'page'>]: QueryPostDto[key];
 };
 
+/**
+ * 文章数据操作
+ */
 @Injectable()
-export class PostService {
+export class PostService extends BaseService<PostEntity, PostRepository, FindParams> {
+    protected enableTrash = true;
+
     constructor(
         protected repository: PostRepository,
         protected categoryRepository: CategoryRepository,
         protected categoryService: CategoryService,
         protected tagRepository: TagRepository,
+        protected commentRepository: CommentRepository,
         protected searchService?: SearchService,
         protected search_type: SearchType = 'against',
-    ) {}
+    ) {
+        super(repository);
+    }
 
     /**
      * 获取分页数据
@@ -41,7 +55,7 @@ export class PostService {
             return this.searchService.search(
                 options.search,
                 pick(options, ['trashed', 'page', 'limit']),
-            );
+            ) as any;
         }
         const qb = await this.buildListQuery(this.repository.buildBaseQB(), options, callback);
         return paginate(qb, options);
@@ -80,9 +94,7 @@ export class PostService {
                 : [],
         };
         const item = await this.repository.save(createPostDto);
-
         if (!isNil(this.searchService)) await this.searchService.create(item);
-
         return this.detail(item.id);
     }
 
@@ -92,16 +104,14 @@ export class PostService {
      */
     async update(data: UpdatePostDto) {
         const post = await this.detail(data.id);
-
         if (data.category !== undefined) {
             // 更新分类
             const category = isNil(data.category)
                 ? null
                 : await this.categoryRepository.findOneByOrFail({ id: data.category });
             post.category = category;
-            this.repository.save(post, { reload: true });
+            await this.repository.save(post);
         }
-
         if (isArray(data.tags)) {
             // 更新文章关联标签
             await this.repository
@@ -110,11 +120,9 @@ export class PostService {
                 .of(post)
                 .addAndRemove(data.tags, post.tags ?? []);
         }
-
         await this.repository.update(data.id, omit(data, ['id', 'tags', 'category']));
         const result = await this.detail(data.id);
         if (!isNil(this.searchService)) await this.searchService.update([post]);
-
         return result;
     }
 
@@ -126,25 +134,27 @@ export class PostService {
         const items = await this.repository.find({
             where: { id: In(ids) },
             withDeleted: true,
+            relations: ['category', 'comments', 'tags'],
         });
-
         let result: PostEntity[] = [];
         if (trash) {
             // 对已软删除的数据再次删除时直接通过remove方法从数据库中清除
             const directs = items.filter((item) => !isNil(item.deletedAt));
+            // 需要记录直接删除的ids,因为remove(directs)会使directs的id为undefined,再次删除meili数据会有问题!!!
+            const directIds = directs.map(({ id }) => id);
             const softs = items.filter((item) => isNil(item.deletedAt));
             result = [
                 ...(await this.repository.remove(directs)),
                 ...(await this.repository.softRemove(softs)),
             ];
             if (!isNil(this.searchService)) {
-                await this.searchService.delete(directs.map(({ id }) => id));
+                await this.searchService.delete(directIds);
                 await this.searchService.update(softs);
             }
         } else {
             result = await this.repository.remove(items);
             if (!isNil(this.searchService)) {
-                await this.searchService.delete(result.map(({ id }) => id));
+                await this.searchService.delete(ids);
             }
         }
         return result;
@@ -163,6 +173,14 @@ export class PostService {
         const trasheds = items.filter((item) => !isNil(item)).map((item) => item.id);
         if (trasheds.length < 1) return [];
         await this.repository.restore(trasheds);
+
+        for (const post of trasheds) {
+            await this.commentRepository.restore({
+                post: { id: post },
+                deletedAt: Not(IsNull()),
+            });
+        }
+
         const qb = await this.buildListQuery(this.repository.buildBaseQB(), {}, async (qbuilder) =>
             qbuilder.andWhereInIds(trasheds),
         );
@@ -181,7 +199,7 @@ export class PostService {
         callback?: QueryHook<PostEntity>,
     ) {
         const { category, tag, orderBy, isPublished, trashed = SelectTrashMode.NONE } = options;
-
+        // 是否查询回收站
         if (trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY) {
             qb.withDeleted();
             if (trashed === SelectTrashMode.ONLY) qb.where(`post.deletedAt is not null`);
@@ -210,8 +228,12 @@ export class PostService {
             qb.andWhere('title LIKE :search', { search: `%${search}%` })
                 .orWhere('body LIKE :search', { search: `%${search}%` })
                 .orWhere('summary LIKE :search', { search: `%${search}%` })
-                .orWhere('category.name LIKE :search', { search: `%${search}%` })
-                .orWhere('tags.name LIKE :search', { search: `%${search}%` });
+                .orWhere('category.name LIKE :search', {
+                    search: `%${search}%`,
+                })
+                .orWhere('tags.name LIKE :search', {
+                    search: `%${search}%`,
+                });
         } else if (this.search_type === 'against') {
             qb.andWhere('MATCH(title) AGAINST (:search IN BOOLEAN MODE)', {
                 search: `${search}*`,
@@ -259,7 +281,7 @@ export class PostService {
     }
 
     /**
-     * 查询出分类及后代分类下的所有文章的Query构建
+     * 查询出分类及其后代分类下的所有文章的Query构建
      * @param id
      * @param qb
      */

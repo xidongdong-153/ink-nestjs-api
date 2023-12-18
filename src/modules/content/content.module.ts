@@ -32,6 +32,7 @@ export class ContentModule {
                     repositories.CategoryRepository,
                     services.CategoryService,
                     repositories.TagRepository,
+                    repositories.CommentRepository,
                     { token: services.SearchService, optional: true },
                 ],
                 useFactory(
@@ -39,6 +40,7 @@ export class ContentModule {
                     categoryRepository: repositories.CategoryRepository,
                     categoryService: services.CategoryService,
                     tagRepository: repositories.TagRepository,
+                    commentRepository: repositories.CommentRepository,
                     searchService: services.SearchService,
                 ) {
                     return new PostService(
@@ -46,6 +48,7 @@ export class ContentModule {
                         categoryRepository,
                         categoryService,
                         tagRepository,
+                        commentRepository,
                         searchService,
                         config.searchType,
                     );

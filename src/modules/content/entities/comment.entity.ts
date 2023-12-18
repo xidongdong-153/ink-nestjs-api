@@ -1,8 +1,9 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import {
     BaseEntity,
     Column,
     CreateDateColumn,
+    DeleteDateColumn,
     Entity,
     Index,
     ManyToOne,
@@ -46,10 +47,17 @@ export class CommentEntity extends BaseEntity {
     depth = 0;
 
     @Expose({ groups: ['comment-detail', 'comment-list'] })
-    @TreeParent({ onDelete: 'NO ACTION' })
+    @TreeParent({ onDelete: 'CASCADE' })
     parent: Relation<CommentEntity> | null;
 
     @Expose({ groups: ['comment-tree'] })
     @TreeChildren({ cascade: true })
     children: Relation<CommentEntity[]>;
+
+    @Expose()
+    @Type(() => Date)
+    @DeleteDateColumn({
+        comment: '删除时间',
+    })
+    deletedAt: Date;
 }
