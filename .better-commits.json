@@ -1,0 +1,167 @@
+{
+    "check_status": true,
+    "commit_type": {
+        "enable": true,
+        "initial_value": "feat",
+        "infer_type_from_branch": true,
+        "append_emoji_to_label": false,
+        "append_emoji_to_commit": false,
+        "options": [
+            {
+                "value": "feat",
+                "label": "feat",
+                "hint": "一个新功能",
+                "emoji": "✨"
+            },
+            {
+                "value": "fix",
+                "label": "fix",
+                "hint": "修复一个错误",
+                "emoji": "🐛"
+            },
+            {
+                "value": "docs",
+                "label": "docs",
+                "hint": "仅文档更改",
+                "emoji": "📚"
+            },
+            {
+                "value": "refactor",
+                "label": "refactor",
+                "hint": "既不修复错误也不添加功能的代码更改",
+                "emoji": "🔨"
+            },
+            {
+                "value": "perf",
+                "label": "perf",
+                "hint": "提高性能的代码更改",
+                "emoji": "🚀"
+            },
+            {
+                "value": "test",
+                "label": "test",
+                "hint": "添加缺失测试或纠正现有测试",
+                "emoji": "🚨"
+            },
+            {
+                "value": "build",
+                "label": "build",
+                "hint": "影响构建系统或外部依赖项的更改",
+                "emoji": "🚧"
+            },
+            {
+                "value": "ci",
+                "label": "ci",
+                "hint": "我们的 CI 配置文件和脚本更改",
+                "emoji": "🤖"
+            },
+            {
+                "value": "chore",
+                "label": "chore",
+                "hint": "不修改 src 或测试文件的其他更改",
+                "emoji": "🧹"
+            },
+            {
+                "value": "",
+                "label": "none"
+            }
+        ]
+    },
+    "commit_scope": {
+        "enable": true,
+        "custom_scope": false,
+        "initial_value": "frontend",
+        "options": [
+            {
+                "value": "frontend",
+                "label": "前端"
+            },
+            {
+                "value": "backend",
+                "label": "后端"
+            },
+            {
+                "value": "api",
+                "label": "API"
+            },
+            {
+                "value": "database",
+                "label": "数据库"
+            },
+            {
+                "value": "security",
+                "label": "安全"
+            },
+            {
+                "value": "ui",
+                "label": "界面"
+            },
+            {
+                "value": "testing",
+                "label": "测试"
+            },
+            {
+                "value": "deployment",
+                "label": "部署"
+            },
+            {
+                "value": "documentation",
+                "label": "文档"
+            },
+            {
+                "value": "",
+                "label": "无"
+            }
+        ]
+    },
+    "check_ticket": {
+        "infer_ticket": true,
+        "confirm_ticket": true,
+        "add_to_title": true,
+        "append_hashtag": false,
+        "title_position": "start"
+    },
+    "commit_title": {
+        "max_size": 70
+    },
+    "commit_body": {
+        "enable": true,
+        "required": false
+    },
+    "commit_footer": {
+        "enable": true,
+        "initial_value": [],
+        "options": ["closes", "breaking-change", "deprecated", "custom"]
+    },
+    "breaking_change": {
+        "add_exclamation_to_title": true
+    },
+    "confirm_commit": true,
+    "print_commit_output": true,
+    "branch_pre_commands": [],
+    "branch_post_commands": [],
+    "worktree_pre_commands": [],
+    "worktree_post_commands": [],
+    "branch_user": {
+        "enable": true,
+        "required": false,
+        "separator": "/"
+    },
+    "branch_type": {
+        "enable": true,
+        "separator": "/"
+    },
+    "branch_ticket": {
+        "enable": true,
+        "required": false,
+        "separator": "-"
+    },
+    "branch_description": {
+        "max_length": 70
+    },
+    "branch_action_default": "branch",
+    "enable_worktrees": true,
+    "overrides": {
+        "shell": "/bin/sh"
+    }
+}
