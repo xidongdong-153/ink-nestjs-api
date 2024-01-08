@@ -7,7 +7,6 @@ import {
     registerDecorator,
 } from 'class-validator';
 import { isNil, merge } from 'lodash';
-
 import { DataSource, ObjectType } from 'typeorm';
 
 type Condition = {

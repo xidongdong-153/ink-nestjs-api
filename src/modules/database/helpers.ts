@@ -1,13 +1,23 @@
 import { isNil } from 'lodash';
 import { DataSource, ObjectLiteral, ObjectType, Repository, SelectQueryBuilder } from 'typeorm';
 
+import { createConnectionOptions } from '@/modules/config/helpers';
+import { ConfigureFactory, ConfigureRegister } from '@/modules/config/types';
+import { deepMerge } from '@/modules/core/helpers';
 import { CUSTOM_REPOSITORY_METADATA } from '@/modules/database/constants';
-import { OrderQueryType, PaginateOptions, PaginateReturn } from '@/modules/database/types';
+import {
+    DbConfig,
+    DbOptions,
+    OrderQueryType,
+    PaginateOptions,
+    PaginateReturn,
+    TypeormOption,
+} from '@/modules/database/types';
 
 /**
  * 分页函数
- * @params qb queryBuilder实例
- * @params options 分页选项
+ * @param qb queryBuilder实例
+ * @param options 分页选项
  */
 export const paginate = async <E extends ObjectLiteral>(
     qb: SelectQueryBuilder<E>,
@@ -42,25 +52,22 @@ export const paginate = async <E extends ObjectLiteral>(
  * @param options 分页选项
  * @param data 数据列表
  */
-export const treePaginate = <E extends ObjectLiteral>(
+export function treePaginate<E extends ObjectLiteral>(
     options: PaginateOptions,
     data: E[],
-): PaginateReturn<E> => {
+): PaginateReturn<E> {
     const { page, limit } = options;
     let items: E[] = [];
     const totalItems = data.length;
     const totalRst = totalItems / limit;
     const totalPages =
         totalRst > Math.floor(totalRst) ? Math.floor(totalRst) + 1 : Math.floor(totalRst);
-
     let itemCount = 0;
-
     if (page <= totalPages) {
         itemCount = page === totalPages ? totalItems - (totalPages - 1) * limit : limit;
         const start = (page - 1) * limit;
         items = data.slice(start, start + itemCount);
     }
-
     return {
         meta: {
             itemCount,
@@ -71,7 +78,7 @@ export const treePaginate = <E extends ObjectLiteral>(
         },
         items,
     };
-};
+}
 
 /**
  * 为查询添加排序,默认排序规则为DESC
@@ -112,3 +119,52 @@ export const getCustomRepository = <T extends Repository<E>, E extends ObjectLit
     const base = dataSource.getRepository<ObjectType<any>>(entity);
     return new Repo(base.target, base.manager, base.queryRunner) as T;
 };
+
+/**
+ * 创建数据库配置
+ * @param options 自定义配置
+ */
+export const createDbOptions = (options: DbConfig) => {
+    const newOptions: DbOptions = {
+        common: deepMerge(
+            {
+                charset: 'utf8mb4',
+                logging: ['error'],
+            },
+            options.common ?? {},
+            'replace',
+        ),
+        connections: createConnectionOptions(options.connections ?? []),
+    };
+    newOptions.connections = newOptions.connections.map((connection) => {
+        const entities = connection.entities ?? [];
+        const newOption = { ...connection, entities };
+        return deepMerge(
+            newOptions.common,
+            {
+                ...newOption,
+                autoLoadEntities: true,
+            } as any,
+            'replace',
+        ) as TypeormOption;
+    });
+    return newOptions;
+};
+
+/**
+ * 数据库配置构造器创建
+ * @param register
+ */
+export const createDbConfig: (
+    register: ConfigureRegister<RePartial<DbConfig>>,
+) => ConfigureFactory<DbConfig, DbOptions> = (register) => ({
+    register,
+    hook: (configure, value) => createDbOptions(value),
+    defaultRegister: () => ({
+        common: {
+            charset: 'utf8mb4',
+            logging: ['error'],
+        },
+        connections: [],
+    }),
+});

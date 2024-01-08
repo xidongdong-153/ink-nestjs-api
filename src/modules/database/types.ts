@@ -1,3 +1,5 @@
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+
 import {
     FindTreeOptions,
     ObjectLiteral,
@@ -10,10 +12,28 @@ import { BaseRepository, BaseTreeRepository } from '@/modules/database/base';
 import { OrderType, SelectTrashMode } from '@/modules/database/constants';
 
 /**
- * 一个查询钩子，用于修改或增强给定的查询构建器。
- * @param {SelectQueryBuilder<Entity>} qb - TypeORM的查询构建器实例。
- * @returns {Promise<SelectQueryBuilder<Entity>>} - 经过修改或增强的查询构建器实例。
+ * 自定义数据库配置
  */
+export type DbConfig = {
+    common: Record<string, any>;
+    connections: Array<TypeOrmModuleOptions>;
+};
+
+/**
+ * 最终数据库配置
+ */
+export type DbOptions = Record<string, any> & {
+    common: Record<string, any>;
+    connections: TypeormOption[];
+};
+
+/**
+ * Typeorm连接配置
+ */
+export type TypeormOption = Omit<TypeOrmModuleOptions, 'name' | 'migrations'> & {
+    name: string;
+};
+
 export type QueryHook<Entity> = (
     qb: SelectQueryBuilder<Entity>,
 ) => Promise<SelectQueryBuilder<Entity>>;
@@ -26,28 +46,23 @@ export interface PaginateMeta {
      * 当前页项目数量
      */
     itemCount: number;
-
     /**
      * 项目总数量
      */
     totalItems?: number;
-
     /**
      * 每页显示数量
      */
     perPage: number;
-
     /**
      * 总页数
      */
     totalPages?: number;
-
     /**
      * 当前页数
      */
     currentPage: number;
 }
-
 /**
  * 分页选项
  */
@@ -56,7 +71,6 @@ export interface PaginateOptions {
      * 当前页数
      */
     page: number;
-
     /**
      * 每页显示数量
      */
@@ -64,18 +78,11 @@ export interface PaginateOptions {
 }
 
 /**
- * 分页数据返回
+ * 分页返回数据
  */
 export interface PaginateReturn<E extends ObjectLiteral> {
-    /**
-     * 项目列表
-     */
-    items: E[];
-
-    /**
-     * 分页信息
-     */
     meta: PaginateMeta;
+    items: E[];
 }
 
 /**
@@ -123,6 +130,7 @@ type ServiceListQueryOptionNotWithTrashed<E extends ObjectLiteral> = Omit<
     'trashed'
 >;
 
+// src/modules/database/types.ts
 /**
  * Repository类型
  */

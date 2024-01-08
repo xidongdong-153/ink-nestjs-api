@@ -1,31 +1,48 @@
-import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
+import { DynamicModule, Module, ModuleMetadata, Provider, Type } from '@nestjs/common';
+
 import { TypeOrmModule, TypeOrmModuleOptions, getDataSourceToken } from '@nestjs/typeorm';
 
 import { DataSource, ObjectType } from 'typeorm';
 
+import { Configure } from '@/modules/config/configure';
+
+import { panic } from '@/modules/core/helpers';
+
 import { CUSTOM_REPOSITORY_METADATA } from '@/modules/database/constants';
+
 import {
     DataExistConstraint,
     UniqueConstraint,
     UniqueExistContraint,
     UniqueTreeConstraint,
-} from '@/modules/database/constraints';
-import { UniqueTreeExistConstraint } from '@/modules/database/constraints/tree.unique.exist.constraint';
+    UniqueTreeExistConstraint,
+} from './constraints';
+import { DbOptions } from './types';
 
 @Module({})
 export class DatabaseModule {
-    static forRoot(configRegister: () => TypeOrmModuleOptions): DynamicModule {
+    static async forRoot(configure: Configure) {
+        if (!configure.has('database')) {
+            panic({ message: 'Database config not exists or not right!' });
+        }
+        const { connections } = await configure.get<DbOptions>('database');
+        const imports: ModuleMetadata['imports'] = [];
+        for (const dbOption of connections) {
+            imports.push(TypeOrmModule.forRoot(dbOption as TypeOrmModuleOptions));
+        }
+        const providers: ModuleMetadata['providers'] = [
+            DataExistConstraint,
+            UniqueConstraint,
+            UniqueExistContraint,
+            UniqueTreeConstraint,
+            UniqueTreeExistConstraint,
+        ];
+
         return {
             global: true,
             module: DatabaseModule,
-            imports: [TypeOrmModule.forRoot(configRegister())],
-            providers: [
-                DataExistConstraint,
-                UniqueConstraint,
-                UniqueExistContraint,
-                UniqueTreeConstraint,
-                UniqueTreeExistConstraint,
-            ],
+            imports,
+            providers,
         };
     }
 
@@ -51,7 +68,6 @@ export class DatabaseModule {
                 },
             });
         }
-
         return {
             exports: providers,
             module: DatabaseModule,

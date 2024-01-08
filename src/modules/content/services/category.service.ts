@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { isNil, omit } from 'lodash';
+
 import { EntityNotFoundError } from 'typeorm';
 
 import {
@@ -15,9 +16,6 @@ import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { treePaginate } from '@/modules/database/helpers';
 
-/**
- * 分类数据操作
- */
 @Injectable()
 export class CategoryService extends BaseService<CategoryEntity, CategoryRepository> {
     protected enableTrash = true;

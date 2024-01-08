@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
+
 import {
     IsDefined,
     IsEnum,
@@ -17,7 +18,6 @@ import { CategoryEntity } from '@/modules/content/entities';
 import { DtoValidation } from '@/modules/core/decorators';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { IsDataExist, IsTreeUnique, IsTreeUniqueExist } from '@/modules/database/constraints';
-
 import { PaginateOptions } from '@/modules/database/types';
 
 /**
@@ -30,19 +30,22 @@ export class QueryCategoryTreeDto {
     trashed?: SelectTrashMode;
 }
 
+/**
+ * 分类分页查询验证
+ */
 @DtoValidation({ type: 'query' })
 export class QueryCategoryDto extends QueryCategoryTreeDto implements PaginateOptions {
     @Transform(({ value }) => toNumber(value))
-    @Min(1, { message: '当前页数必须大于1' })
+    @Min(1, { message: '当前页必须大于1' })
     @IsNumber()
     @IsOptional()
     page = 1;
 
     @Transform(({ value }) => toNumber(value))
-    @Min(1, { message: '每页显示数量必须大于1' })
+    @Min(1, { message: '每页显示数据必须大于1' })
     @IsNumber()
     @IsOptional()
-    limit: 10;
+    limit = 10;
 }
 
 /**
@@ -60,9 +63,9 @@ export class CreateCategoryDto {
     })
     @MaxLength(25, {
         always: true,
-        message: '分类名称长度最大为$constraint1',
+        message: '分类名称长度不得超过$constraint1',
     })
-    @IsNotEmpty({ groups: ['create'], message: '分类名称不能为空' })
+    @IsNotEmpty({ groups: ['create'], message: '分类名称不得为空' })
     @IsOptional({ groups: ['update'] })
     name: string;
 
@@ -85,7 +88,7 @@ export class CreateCategoryDto {
  */
 @DtoValidation({ groups: ['update'] })
 export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {
-    @IsUUID(undefined, { groups: ['update'], message: '分类ID格式不正确' })
-    @IsDefined({ groups: ['update'], message: '分类ID必须指定' })
+    @IsUUID(undefined, { groups: ['update'], message: 'ID格式错误' })
+    @IsDefined({ groups: ['update'], message: 'ID必须指定' })
     id: string;
 }

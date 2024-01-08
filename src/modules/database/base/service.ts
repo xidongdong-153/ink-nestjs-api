@@ -1,13 +1,19 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+
 import { isNil } from 'lodash';
+
 import { In, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 
-import { SelectTrashMode, TreeChildrenResolve } from '../constants';
-import { paginate, treePaginate } from '../helpers';
-import { PaginateOptions, PaginateReturn, QueryHook, ServiceListQueryOption } from '../types';
+import { BaseRepository, BaseTreeRepository } from '@/modules/database/base';
+import { SelectTrashMode, TreeChildrenResolve } from '@/modules/database/constants';
+import { paginate, treePaginate } from '@/modules/database/helpers';
+import {
+    PaginateOptions,
+    PaginateReturn,
+    QueryHook,
+    ServiceListQueryOption,
+} from '@/modules/database/types';
 
-import { BaseRepository } from './repository';
-import { BaseTreeRepository } from './tree.repository';
 /**
  *  CRUD操作服务
  */

@@ -1,10 +1,10 @@
 import {
-    ValidationArguments,
-    ValidationOptions,
     isMobilePhone,
     registerDecorator,
+    ValidationArguments,
+    ValidationOptions,
 } from 'class-validator';
-import { IsMobilePhoneOptions, MobilePhoneLocale } from 'validator/lib/isMobilePhone';
+import { MobilePhoneLocale, IsMobilePhoneOptions } from 'validator/lib/isMobilePhone';
 
 /**
  * 手机号验证规则,必须是"区域号.手机号"的形式
@@ -15,8 +15,8 @@ export function isMatchPhone(
     options?: IsMobilePhoneOptions,
 ): boolean {
     if (!value) return false;
-
     const phoneArr: string[] = value.split('.');
+    if (phoneArr.length !== 2) return false;
     return isMobilePhone(phoneArr.join(''), locale, options);
 }
 
@@ -31,7 +31,7 @@ export function IsMatchPhone(
     options?: IsMobilePhoneOptions,
     validationOptions?: ValidationOptions,
 ) {
-    return (object: RecordAny, propertyName: string) => {
+    return (object: Record<string, any>, propertyName: string) => {
         registerDecorator({
             target: object.constructor,
             propertyName,
@@ -41,7 +41,7 @@ export function IsMatchPhone(
                 validate: (value: any, args: ValidationArguments): boolean =>
                     isMatchPhone(value, args.constraints[0], args.constraints[1]),
                 defaultMessage: (_args: ValidationArguments) =>
-                    '$property must be a phone number, eg: +86.12345678901',
+                    '$property must be a phone number,eg: +86.12345678901',
             },
         });
     };

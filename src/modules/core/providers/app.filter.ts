@@ -4,7 +4,7 @@ import { isObject } from 'lodash';
 import { EntityNotFoundError, EntityPropertyNotFoundError, QueryFailedError } from 'typeorm';
 
 /**
- * 全局过滤器，用于响应自定义异常
+ * 全局过滤器,用于响应自定义异常
  */
 @Catch()
 export class AppFilter<T = Error> extends BaseExceptionFilter<T> {
@@ -46,7 +46,6 @@ export class AppFilter<T = Error> extends BaseExceptionFilter<T> {
                   statusCode: status,
                   message: res,
               };
-
         applicationRef!.reply(host.getArgByIndex(1), message, status);
     }
 }

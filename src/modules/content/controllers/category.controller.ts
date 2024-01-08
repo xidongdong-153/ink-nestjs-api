@@ -41,13 +41,16 @@ export class CategoryController {
 
     @Get(':id')
     @SerializeOptions({ groups: ['category-detail'] })
-    async detail(@Param('id', new ParseUUIDPipe()) id: string) {
+    async detail(
+        @Param('id', new ParseUUIDPipe())
+        id: string,
+    ) {
         return this.service.detail(id);
     }
 
     @Post()
     @SerializeOptions({ groups: ['category-detail'] })
-    async create(
+    async store(
         @Body()
         data: CreateCategoryDto,
     ) {
@@ -64,18 +67,22 @@ export class CategoryController {
     }
 
     @Delete()
-    @SerializeOptions({ groups: ['category-detail'] })
-    async delete(@Body() data: DeleteWithTrashDto) {
+    @SerializeOptions({ groups: ['category-list'] })
+    async delete(
+        @Body()
+        data: DeleteWithTrashDto,
+    ) {
         const { ids, trash } = data;
-
         return this.service.delete(ids, trash);
     }
 
     @Patch('restore')
-    @SerializeOptions({ groups: ['category-detail'] })
-    async restore(@Body() data: RestoreDto) {
+    @SerializeOptions({ groups: ['category-list'] })
+    async restore(
+        @Body()
+        data: RestoreDto,
+    ) {
         const { ids } = data;
-
         return this.service.restore(ids);
     }
 }

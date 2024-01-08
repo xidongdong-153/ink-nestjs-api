@@ -1,8 +1,4 @@
-/**
- * 自定义 Repository 元数据
- */
 export const CUSTOM_REPOSITORY_METADATA = 'CUSTOM_REPOSITORY_METADATA';
-
 /**
  * 软删除数据查询类型
  */

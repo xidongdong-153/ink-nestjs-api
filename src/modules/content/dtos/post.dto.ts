@@ -30,18 +30,46 @@ import { PaginateOptions } from '@/modules/database/types';
  */
 @DtoValidation({ type: 'query' })
 export class QueryPostDto implements PaginateOptions {
+    @MaxLength(100, {
+        always: true,
+        message: '搜索字符串长度不得超过$constraint1',
+    })
+    @IsOptional({ always: true })
+    search?: string;
+
     @Transform(({ value }) => toBoolean(value))
     @IsBoolean()
     @IsOptional()
     isPublished?: boolean;
 
     @IsEnum(PostOrderType, {
-        message: `排序规则必需是${Object.values(PostOrderType).join(',')}中的一项`,
+        message: `排序规则必须是${Object.values(PostOrderType).join(',')}其中一项`,
     })
+    @IsOptional()
     orderBy?: PostOrderType;
 
+    @IsDataExist(CategoryEntity, {
+        always: true,
+        message: '分类不存在',
+    })
+    @IsUUID(undefined, { message: 'ID格式错误' })
+    @IsOptional()
+    category?: string;
+
+    @IsDataExist(TagEntity, {
+        always: true,
+        message: '标签不存在',
+    })
+    @IsUUID(undefined, { message: 'ID格式错误' })
+    @IsOptional()
+    tag?: string;
+
+    @IsEnum(SelectTrashMode)
+    @IsOptional()
+    trashed?: SelectTrashMode;
+
     @Transform(({ value }) => toNumber(value))
-    @Min(1, { message: '当前页必需大于1' })
+    @Min(1, { message: '当前页必须大于1' })
     @IsNumber()
     @IsOptional()
     page = 1;
@@ -50,34 +78,7 @@ export class QueryPostDto implements PaginateOptions {
     @Min(1, { message: '每页显示数据必须大于1' })
     @IsNumber()
     @IsOptional()
-    limit: 10;
-
-    @IsDataExist(CategoryEntity, {
-        always: true,
-        message: '分类不存在',
-    })
-    @IsUUID(undefined, { message: '分类ID必须是UUID' })
-    @IsOptional()
-    category?: string;
-
-    @IsDataExist(TagEntity, {
-        always: true,
-        message: '标签不存在',
-    })
-    @IsUUID(undefined, { message: '标签ID必须是UUID' })
-    @IsOptional()
-    tag?: string;
-
-    @IsEnum(SelectTrashMode)
-    @IsOptional()
-    trashed?: SelectTrashMode;
-
-    @MaxLength(100, {
-        always: true,
-        message: '搜索字符串长度不得超过$constraint1',
-    })
-    @IsOptional({ always: true })
-    search?: string;
+    limit = 10;
 }
 
 /**
@@ -89,20 +90,17 @@ export class CreatePostDto {
         always: true,
         message: '文章标题长度最大为$constraint1',
     })
-    @IsNotEmpty({
-        groups: ['create'],
-        message: '文章标题为必填',
-    })
+    @IsNotEmpty({ groups: ['create'], message: '文章标题必须填写' })
     @IsOptional({ groups: ['update'] })
     title: string;
 
-    @IsNotEmpty({ groups: ['create'], message: '文章内容为必填' })
+    @IsNotEmpty({ groups: ['create'], message: '文章内容必须填写' })
     @IsOptional({ groups: ['update'] })
     body: string;
 
     @MaxLength(500, {
         always: true,
-        message: '文章摘要长度最大为$constraint1',
+        message: '文章描述长度最大为$constraint1',
     })
     @IsOptional({ always: true })
     summary?: string;
@@ -130,7 +128,11 @@ export class CreatePostDto {
     @IsDataExist(CategoryEntity, {
         message: '分类不存在',
     })
-    @IsUUID(undefined, { message: '分类ID必须是UUID', each: true, always: true })
+    @IsUUID(undefined, {
+        each: true,
+        always: true,
+        message: 'ID格式不正确',
+    })
     @IsOptional({ groups: ['update'] })
     category: string;
 
@@ -142,9 +144,9 @@ export class CreatePostDto {
     @IsUUID(undefined, {
         each: true,
         always: true,
-        message: '每个标签ID必须是UUID',
+        message: 'ID格式不正确',
     })
-    @IsNotEmpty({ groups: ['create'], message: '至少需要一个标签' })
+    @IsNotEmpty({ groups: ['create'], message: '分类必须设置' })
     @IsOptional({ always: true })
     tags?: string[];
 }

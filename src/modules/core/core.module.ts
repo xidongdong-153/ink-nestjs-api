@@ -6,6 +6,8 @@ export class CoreModule {
         return {
             module: CoreModule,
             global: true,
+            providers: [],
+            exports: [],
         };
     }
 }

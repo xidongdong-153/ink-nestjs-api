@@ -36,8 +36,11 @@ export class CommentController {
     }
 
     @Delete()
-    @SerializeOptions({ groups: ['comment-detail'] })
-    async delete(@Body() data: DeleteDto) {
+    @SerializeOptions({ groups: ['comment-list'] })
+    async delete(
+        @Body()
+        data: DeleteDto,
+    ) {
         const { ids } = data;
         return this.service.delete(ids);
     }

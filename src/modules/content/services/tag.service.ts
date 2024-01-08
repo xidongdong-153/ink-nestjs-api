@@ -7,9 +7,6 @@ import { TagEntity } from '@/modules/content/entities';
 import { TagRepository } from '@/modules/content/repositories';
 import { BaseService } from '@/modules/database/base';
 
-/**
- * 标签数据操作
- */
 @Injectable()
 export class TagService extends BaseService<TagEntity, TagRepository> {
     protected enableTrash = true;

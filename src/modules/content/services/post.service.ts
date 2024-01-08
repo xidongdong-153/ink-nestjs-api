@@ -7,21 +7,15 @@ import { EntityNotFoundError, In, IsNull, Not, SelectQueryBuilder } from 'typeor
 import { PostOrderType } from '@/modules/content/constants';
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
 import { PostEntity } from '@/modules/content/entities';
-import {
-    CategoryRepository,
-    CommentRepository,
-    PostRepository,
-    TagRepository,
-} from '@/modules/content/repositories';
-
-import { CategoryService } from '@/modules/content/services/category.service';
-import { SearchService } from '@/modules/content/services/search.service';
-import { SearchType } from '@/modules/content/types';
+import { CategoryRepository, PostRepository, TagRepository } from '@/modules/content/repositories';
+import { CategoryService, SearchService } from '@/modules/content/services';
+import type { SearchType } from '@/modules/content/types';
 import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { paginate } from '@/modules/database/helpers';
 import { QueryHook } from '@/modules/database/types';
 
+// 文章查询接口
 type FindParams = {
     [key in keyof Omit<QueryPostDto, 'limit' | 'page'>]: QueryPostDto[key];
 };
@@ -38,7 +32,6 @@ export class PostService extends BaseService<PostEntity, PostRepository, FindPar
         protected categoryRepository: CategoryRepository,
         protected categoryService: CategoryService,
         protected tagRepository: TagRepository,
-        protected commentRepository: CommentRepository,
         protected searchService?: SearchService,
         protected search_type: SearchType = 'against',
     ) {
@@ -134,27 +127,24 @@ export class PostService extends BaseService<PostEntity, PostRepository, FindPar
         const items = await this.repository.find({
             where: { id: In(ids) },
             withDeleted: true,
-            relations: ['category', 'comments', 'tags'],
         });
         let result: PostEntity[] = [];
         if (trash) {
             // 对已软删除的数据再次删除时直接通过remove方法从数据库中清除
             const directs = items.filter((item) => !isNil(item.deletedAt));
-            // 需要记录直接删除的ids,因为remove(directs)会使directs的id为undefined,再次删除meili数据会有问题!!!
-            const directIds = directs.map(({ id }) => id);
             const softs = items.filter((item) => isNil(item.deletedAt));
             result = [
                 ...(await this.repository.remove(directs)),
                 ...(await this.repository.softRemove(softs)),
             ];
             if (!isNil(this.searchService)) {
-                await this.searchService.delete(directIds);
+                await this.searchService.delete(directs.map(({ id }) => id));
                 await this.searchService.update(softs);
             }
         } else {
             result = await this.repository.remove(items);
             if (!isNil(this.searchService)) {
-                await this.searchService.delete(ids);
+                await this.searchService.delete(result.map(({ id }) => id));
             }
         }
         return result;
@@ -173,14 +163,6 @@ export class PostService extends BaseService<PostEntity, PostRepository, FindPar
         const trasheds = items.filter((item) => !isNil(item)).map((item) => item.id);
         if (trasheds.length < 1) return [];
         await this.repository.restore(trasheds);
-
-        for (const post of trasheds) {
-            await this.commentRepository.restore({
-                post: { id: post },
-                deletedAt: Not(IsNull()),
-            });
-        }
-
         const qb = await this.buildListQuery(this.repository.buildBaseQB(), {}, async (qbuilder) =>
             qbuilder.andWhereInIds(trasheds),
         );

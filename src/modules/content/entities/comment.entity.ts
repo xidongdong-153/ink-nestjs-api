@@ -1,20 +1,20 @@
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import {
     BaseEntity,
     Column,
     CreateDateColumn,
-    DeleteDateColumn,
     Entity,
     Index,
     ManyToOne,
     PrimaryColumn,
-    Relation,
     Tree,
     TreeChildren,
     TreeParent,
 } from 'typeorm';
 
-import { PostEntity } from '@/modules/content/entities/post.entity';
+import type { Relation } from 'typeorm';
+
+import { PostEntity } from '@/modules/content/entities';
 
 @Exclude()
 @Tree('materialized-path')
@@ -35,14 +35,6 @@ export class CommentEntity extends BaseEntity {
     })
     createdAt: Date;
 
-    @Expose()
-    @ManyToOne(() => PostEntity, (post) => post.comments, {
-        nullable: false,
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-    })
-    post: Relation<PostEntity>;
-
     @Expose({ groups: ['comment-list'] })
     depth = 0;
 
@@ -52,12 +44,15 @@ export class CommentEntity extends BaseEntity {
 
     @Expose({ groups: ['comment-tree'] })
     @TreeChildren({ cascade: true })
-    children: Relation<CommentEntity[]>;
+    children: Relation<CommentEntity>[];
 
     @Expose()
-    @Type(() => Date)
-    @DeleteDateColumn({
-        comment: '删除时间',
+    @ManyToOne(() => PostEntity, (post) => post.comments, {
+        // 文章不能为空
+        nullable: false,
+        // 跟随父表删除与更新
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
     })
-    deletedAt: Date;
+    post: Relation<PostEntity>;
 }

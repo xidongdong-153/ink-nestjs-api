@@ -20,9 +20,6 @@ import {
 import { getCustomRepository } from '@/modules/database/helpers';
 import { RepositoryType } from '@/modules/database/types';
 
-/**
- * 基础模型观察者
- */
 type SubscriberEvent<E extends ObjectLiteral> =
     | InsertEvent<E>
     | UpdateEvent<E>

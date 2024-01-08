@@ -4,6 +4,7 @@ import { FindTreeOptions, SelectQueryBuilder } from 'typeorm';
 import { CommentEntity } from '@/modules/content/entities';
 import { BaseTreeRepository } from '@/modules/database/base';
 import { CustomRepository } from '@/modules/database/decorators';
+
 import { QueryParams } from '@/modules/database/types';
 
 @CustomRepository(CommentEntity)
@@ -12,6 +13,9 @@ export class CommentRepository extends BaseTreeRepository<CommentEntity> {
 
     protected orderBy = 'createdAt';
 
+    /**
+     * 构建基础查询器
+     */
     buildBaseQB(qb: SelectQueryBuilder<CommentEntity>): SelectQueryBuilder<CommentEntity> {
         return super.buildBaseQB(qb).leftJoinAndSelect(`${this.qbName}.post`, 'post');
     }

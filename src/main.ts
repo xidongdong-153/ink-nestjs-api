@@ -1,26 +1,18 @@
-import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { isNil } from 'lodash';
 
-import { useContainer } from 'class-validator';
+import { WEBAPP, createData } from '@/constants';
+import { createApp, startApp } from '@/modules/core/helpers';
 
-import { AppModule } from '@/app.module';
-
-const bootstrap = async () => {
-    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
-        cors: true,
-        logger: ['error', 'warn'],
-    });
-
-    app.setGlobalPrefix('api');
-
-    // 使validator的约束可以使用nestjs的容器
-    useContainer(app.select(AppModule), {
-        fallbackOnErrors: true,
-    });
-
-    await app.listen(3100, () => {
-        console.log('api: http://localhost:3100/api');
-    });
-};
-
-bootstrap();
+startApp(createApp(WEBAPP, createData), ({ configure }) => async () => {
+    console.log();
+    const chalk = (await import('chalk')).default;
+    const appUrl = await configure.get<string>('app.url');
+    // 设置应用的API前缀,如果没有则与appUrl相同
+    const urlPrefix = await configure.get('app.prefix', undefined);
+    const apiUrl = !isNil(urlPrefix)
+        ? `${appUrl}${urlPrefix.length > 0 ? `/${urlPrefix}` : urlPrefix}`
+        : appUrl;
+    console.log(`- AppUrl: ${chalk.green.underline(appUrl)}`);
+    console.log();
+    console.log(`- ApiUrl: ${chalk.green.underline(apiUrl)}`);
+});

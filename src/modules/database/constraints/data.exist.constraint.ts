@@ -15,19 +15,17 @@ type Condition = {
      */
     map?: string;
 };
-
 /**
- * 查询某个字段的值是否存在数据表中存在
+ * 查询某个字段的值是否在数据表中存在
  */
 @ValidatorConstraint({ name: 'dataExist', async: true })
 @Injectable()
 export class DataExistConstraint implements ValidatorConstraintInterface {
     constructor(private dataSource: DataSource) {}
 
-    async validate(value: string, args?: ValidationArguments) {
+    async validate(value: string, args: ValidationArguments) {
         let repo: Repository<any>;
         if (!value) return true;
-
         // 默认对比字段是id
         let map = 'id';
         // 通过传入的entity获取其repository
@@ -42,12 +40,11 @@ export class DataExistConstraint implements ValidatorConstraintInterface {
         return !!item;
     }
 
-    defaultMessage(args?: ValidationArguments) {
+    defaultMessage(args: ValidationArguments) {
         if (!args.constraints[0]) {
             return 'Model not been specified!';
         }
-
-        return `All instance of ${args.constraints[0].name} must been exists in database!`;
+        return `All instance of ${args.constraints[0].name} must been exists in databse!`;
     }
 }
 
@@ -59,17 +56,17 @@ export class DataExistConstraint implements ValidatorConstraintInterface {
 function IsDataExist(
     entity: ObjectType<any>,
     validationOptions?: ValidationOptions,
-): (object: RecordAny, propertyName: string) => void;
+): (object: Record<string, any>, propertyName: string) => void;
 
 /**
- * 模型存在性验证
+ *  模型存在性验证
  * @param condition
  * @param validationOptions
  */
 function IsDataExist(
     condition: Condition,
     validationOptions?: ValidationOptions,
-): (object: RecordAny, propertyName: string) => void;
+): (object: Record<string, any>, propertyName: string) => void;
 
 /**
  * 模型存在性验证
@@ -78,9 +75,9 @@ function IsDataExist(
  */
 function IsDataExist(
     condition: ObjectType<any> | Condition,
-    validationOptions: ValidationOptions,
-): (object: RecordAny, propertyName: string) => void {
-    return (object: RecordAny, propertyName: string) => {
+    validationOptions?: ValidationOptions,
+): (object: Record<string, any>, propertyName: string) => void {
+    return (object: Record<string, any>, propertyName: string) => {
         registerDecorator({
             target: object.constructor,
             propertyName,

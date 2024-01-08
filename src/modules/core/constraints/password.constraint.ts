@@ -1,30 +1,35 @@
 import {
+    registerDecorator,
     ValidationArguments,
     ValidationOptions,
     ValidatorConstraint,
     ValidatorConstraintInterface,
-    registerDecorator,
 } from 'class-validator';
 
 type ModelType = 1 | 2 | 3 | 4 | 5;
 
+/**
+ * 密码验证规则
+ */
 @ValidatorConstraint({ name: 'isPassword', async: false })
 export class IsPasswordConstraint implements ValidatorConstraintInterface {
-    validate(value: any, args?: ValidationArguments) {
+    validate(value: string, args: ValidationArguments) {
         const validateModel: ModelType = args.constraints[0] ?? 1;
-
         switch (validateModel) {
-            // 必需由大写或小写字母组成(默认)
+            // 必须由大写或小写字母组成(默认模式)
             case 1:
                 return /\d/.test(value) && /[a-zA-Z]/.test(value);
-            // 必需由小写字母组成
+            // 必须由小写字母组成
             case 2:
                 return /\d/.test(value) && /[a-z]/.test(value);
             // 必须由大写字母组成
             case 3:
                 return /\d/.test(value) && /[A-Z]/.test(value);
-            // 必需包含数字,小写字母,大写字母
+            // 必须包含数字,小写字母,大写字母
             case 4:
+                return /\d/.test(value) && /[a-z]/.test(value) && /[A-Z]/.test(value);
+            // 必须包含数字,小写字母,大写字母,特殊符号
+            case 5:
                 return (
                     /\d/.test(value) &&
                     /[a-z]/.test(value) &&
@@ -36,8 +41,8 @@ export class IsPasswordConstraint implements ValidatorConstraintInterface {
         }
     }
 
-    defaultMessage(_args?: ValidationArguments) {
-        return `($value) 's format error!`;
+    defaultMessage(_args: ValidationArguments) {
+        return "($value) 's format error!";
     }
 }
 
@@ -52,7 +57,7 @@ export class IsPasswordConstraint implements ValidatorConstraintInterface {
  * @param validationOptions
  */
 export function IsPassword(model?: ModelType, validationOptions?: ValidationOptions) {
-    return (object: RecordAny, propertyName: string) => {
+    return (object: Record<string, any>, propertyName: string) => {
         registerDecorator({
             target: object.constructor,
             propertyName,

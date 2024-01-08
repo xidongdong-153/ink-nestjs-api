@@ -12,7 +12,7 @@ import { DTO_VALIDATION_OPTIONS } from '@/modules/core/constants';
 import { deepMerge } from '@/modules/core/helpers';
 
 /**
- * 全局管道，用于处理DTO验证
+ * 全局管道,用于处理DTO验证
  */
 @Injectable()
 export class AppPipe extends ValidationPipe {
@@ -26,12 +26,12 @@ export class AppPipe extends ValidationPipe {
         const originOptions = { ...this.validatorOptions };
         // 把当前已设置的class-transform选项解构到备份对象
         const originTransform = { ...this.transformOptions };
-        // 把自定义的class-transform和type选项解构
+        // 把自定义的class-transform和type选项解构出来
         const { transformOptions, type: optionsType, ...customOptions } = options;
         // 根据DTO类上设置的type来设置当前的DTO请求类型,默认为'body'
         const requestType: Paramtype = optionsType ?? 'body';
 
-        // 如果被验证的DTO设置的请求类型与被验证的数据的请求类型不是同一种类型 跳过此管道
+        // 如果被验证的DTO设置的请求类型与被验证的数据的请求类型不是同一种类型则跳过此管道
         if (requestType !== type) return value;
 
         // 合并当前transform选项和自定义选项
@@ -42,41 +42,35 @@ export class AppPipe extends ValidationPipe {
                 'replace',
             );
         }
-
         // 合并当前验证选项和自定义选项
         this.validatorOptions = deepMerge(this.validatorOptions, customOptions ?? {}, 'replace');
         const toValidate = isObject(value)
             ? Object.fromEntries(
-                  Object.entries(value as RecordAny).map(([key, v]) => {
+                  Object.entries(value as Record<string, any>).map(([key, v]) => {
                       if (!isObject(v) || !('mimetype' in v)) return [key, v];
                       return [key, omit(v, ['fields'])];
                   }),
               )
             : value;
-
         try {
             // 序列化并验证dto对象
             let result = await super.transform(toValidate, metadata);
-
-            // 如果dto类中存在transform静态方法,则返回调用进一步transform之后的结果
+            // 如果dto类的中存在transform静态方法,则返回调用进一步transform之后的结果
             if (typeof result.transform === 'function') {
-                result === (await result.transform(result));
+                result = await result.transform(result);
                 const { transform, ...data } = result;
                 result = data;
             }
-
             // 重置验证选项
             this.validatorOptions = originOptions;
             // 重置transform选项
             this.transformOptions = originTransform;
-
             return result;
         } catch (error: any) {
             // 重置验证选项
             this.validatorOptions = originOptions;
             // 重置transform选项
             this.transformOptions = originTransform;
-
             if ('response' in error) throw new BadRequestException(error.response);
             throw new BadRequestException(error);
         }

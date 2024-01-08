@@ -29,26 +29,26 @@ declare type RePartial<T> = {
     [P in keyof T]?: T[P] extends (infer U)[] | undefined
         ? RePartial<U>[]
         : T[P] extends object | undefined
-          ? T[P] extends ((...args: any[]) => any) | ClassType<T[P]> | undefined
-              ? T[P]
-              : RePartial<T[P]>
-          : T[P];
+        ? T[P] extends ((...args: any[]) => any) | ClassType<T[P]> | undefined
+            ? T[P]
+            : RePartial<T[P]>
+        : T[P];
 };
 
 /**
  * 嵌套对象全部必选
  */
 declare type ReRequired<T> = {
-    [P in keyof T]-?: T[P] extends (infer U)[]
+    [P in keyof T]-?: T[P] extends (infer U)[] | undefined
         ? ReRequired<U>[]
-        : T[P] extends ReadonlyArray<infer V>
-          ? ReadonlyArray<ReRequired<V>>
-          : T[P] extends object
-            ? ReRequired<T[P]>
-            : T[P];
+        : T[P] extends object | undefined
+        ? T[P] extends ((...args: any[]) => any) | ClassType<T[P]> | undefined
+            ? T[P]
+            : ReRequired<T[P]>
+        : T[P];
 };
 
 /**
- * 防止swc下循环依赖报错
+ * 防止SWC下循环依赖报错
  */
-declare type WrapperType<T> = T;
+declare type WrapperType<T> = T; // WrapperType === Relation

@@ -11,15 +11,13 @@ import {
     ManyToOne,
     OneToMany,
     PrimaryColumn,
-    Relation,
     UpdateDateColumn,
 } from 'typeorm';
 
-import { PostBodyType } from '../constants';
+import type { Relation } from 'typeorm';
 
-import { CategoryEntity } from './category.entity';
-import { CommentEntity } from './comment.entity';
-import { TagEntity } from './tag.entity';
+import { PostBodyType } from '@/modules/content/constants';
+import { CategoryEntity, CommentEntity, TagEntity } from '@/modules/content/entities';
 
 @Exclude()
 @Entity('content_posts')
@@ -102,7 +100,9 @@ export class PostEntity extends BaseEntity {
     category: Relation<CategoryEntity>;
 
     @Expose()
-    @ManyToMany(() => TagEntity, (tag) => tag.posts)
+    @ManyToMany(() => TagEntity, (tag) => tag.posts, {
+        cascade: true,
+    })
     @JoinTable()
     tags: Relation<TagEntity>[];
 

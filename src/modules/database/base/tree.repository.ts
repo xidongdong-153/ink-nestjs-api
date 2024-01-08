@@ -1,4 +1,5 @@
 import { isNil, pick, unset } from 'lodash';
+
 import {
     EntityManager,
     EntityTarget,
@@ -11,9 +12,9 @@ import {
     TreeRepositoryUtils,
 } from 'typeorm';
 
-import { OrderType, TreeChildrenResolve } from '../constants';
-import { getOrderByQuery } from '../helpers';
-import { OrderQueryType, QueryParams } from '../types';
+import { OrderType, TreeChildrenResolve } from '@/modules/database/constants';
+import { getOrderByQuery } from '@/modules/database/helpers';
+import { OrderQueryType, QueryParams } from '@/modules/database/types';
 
 /**
  * 基础树形存储类
