@@ -70,11 +70,11 @@ export interface PaginateOptions {
     /**
      * 当前页数
      */
-    page: number;
+    page?: number;
     /**
      * 每页显示数量
      */
-    limit: number;
+    limit?: number;
 }
 
 /**

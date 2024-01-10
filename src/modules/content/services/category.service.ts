@@ -4,17 +4,13 @@ import { isNil, omit } from 'lodash';
 
 import { EntityNotFoundError } from 'typeorm';
 
-import {
-    CreateCategoryDto,
-    QueryCategoryDto,
-    QueryCategoryTreeDto,
-    UpdateCategoryDto,
-} from '@/modules/content/dtos';
+import { CreateCategoryDto, QueryCategoryTreeDto, UpdateCategoryDto } from '@/modules/content/dtos';
 import { CategoryEntity } from '@/modules/content/entities';
 import { CategoryRepository } from '@/modules/content/repositories';
 import { BaseService } from '@/modules/database/base';
 import { SelectTrashMode } from '@/modules/database/constants';
 import { treePaginate } from '@/modules/database/helpers';
+import { PaginateWithTrashedDto } from '@/modules/restful/dtos';
 
 @Injectable()
 export class CategoryService extends BaseService<CategoryEntity, CategoryRepository> {
@@ -39,7 +35,7 @@ export class CategoryService extends BaseService<CategoryEntity, CategoryReposit
      * 获取分页数据
      * @param options 分页选项
      */
-    async paginate(options: QueryCategoryDto) {
+    async paginate(options: PaginateWithTrashedDto) {
         const { trashed = SelectTrashMode.NONE } = options;
         const tree = await this.repository.findTrees({
             withTrashed: trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY,

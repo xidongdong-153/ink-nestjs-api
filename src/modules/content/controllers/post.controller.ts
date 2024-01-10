@@ -11,14 +11,24 @@ import {
     SerializeOptions,
 } from '@nestjs/common';
 
+import { ApiTags } from '@nestjs/swagger';
+
+import { ContentModule } from '@/modules/content/content.module';
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '@/modules/content/dtos';
 import { PostService } from '@/modules/content/services/post.service';
+import { Depends } from '@/modules/restful/decorators';
 import { DeleteWithTrashDto, RestoreDto } from '@/modules/restful/dtos';
 
+@ApiTags('文章操作')
+@Depends(ContentModule)
 @Controller('posts')
 export class PostController {
     constructor(protected service: PostService) {}
 
+    /**
+     * 分页查询文章列表
+     * @param options
+     */
     @Get()
     @SerializeOptions({ groups: ['post-list'] })
     async list(
@@ -28,6 +38,10 @@ export class PostController {
         return this.service.paginate(options);
     }
 
+    /**
+     * 查询文章详情
+     * @param id
+     */
     @Get(':id')
     @SerializeOptions({ groups: ['post-detail'] })
     async detail(
@@ -37,6 +51,10 @@ export class PostController {
         return this.service.detail(id);
     }
 
+    /**
+     * 新增文章
+     * @param data
+     */
     @Post()
     @SerializeOptions({ groups: ['post-detail'] })
     async store(
@@ -46,6 +64,10 @@ export class PostController {
         return this.service.create(data);
     }
 
+    /**
+     * 更新文章
+     * @param data
+     */
     @Patch()
     @SerializeOptions({ groups: ['post-detail'] })
     async update(
@@ -55,6 +77,10 @@ export class PostController {
         return this.service.update(data);
     }
 
+    /**
+     * 批量删除文章
+     * @param data
+     */
     @Delete()
     @SerializeOptions({ groups: ['post-list'] })
     async delete(
@@ -65,6 +91,10 @@ export class PostController {
         return this.service.delete(ids, trash);
     }
 
+    /**
+     * 批量恢复文章
+     * @param data
+     */
     @Patch('restore')
     @SerializeOptions({ groups: ['post-list'] })
     async restore(

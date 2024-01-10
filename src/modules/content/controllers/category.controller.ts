@@ -11,34 +11,48 @@ import {
     SerializeOptions,
 } from '@nestjs/common';
 
-import {
-    CreateCategoryDto,
-    QueryCategoryDto,
-    QueryCategoryTreeDto,
-    UpdateCategoryDto,
-} from '@/modules/content/dtos';
-import { CategoryService } from '@/modules/content/services';
-import { DeleteWithTrashDto, RestoreDto } from '@/modules/restful/dtos';
+import { ApiTags } from '@nestjs/swagger';
 
+import { ContentModule } from '@/modules/content/content.module';
+import { CreateCategoryDto, QueryCategoryTreeDto, UpdateCategoryDto } from '@/modules/content/dtos';
+
+import { CategoryService } from '@/modules/content/services';
+import { Depends } from '@/modules/restful/decorators';
+import { DeleteWithTrashDto, PaginateWithTrashedDto, RestoreDto } from '@/modules/restful/dtos';
+
+@ApiTags('分类操作')
+@Depends(ContentModule)
 @Controller('categories')
 export class CategoryController {
     constructor(protected service: CategoryService) {}
 
+    /**
+     * 查询分类树
+     * @param options
+     */
     @Get('tree')
     @SerializeOptions({ groups: ['category-tree'] })
     async tree(@Query() options: QueryCategoryTreeDto) {
         return this.service.findTrees(options);
     }
 
+    /**
+     * 分页查询分类列表
+     * @param options
+     */
     @Get()
     @SerializeOptions({ groups: ['category-list'] })
     async list(
         @Query()
-        options: QueryCategoryDto,
+        options: PaginateWithTrashedDto,
     ) {
         return this.service.paginate(options);
     }
 
+    /**
+     * 分页详解查询
+     * @param id
+     */
     @Get(':id')
     @SerializeOptions({ groups: ['category-detail'] })
     async detail(
@@ -48,6 +62,10 @@ export class CategoryController {
         return this.service.detail(id);
     }
 
+    /**
+     * 新增分类
+     * @param data
+     */
     @Post()
     @SerializeOptions({ groups: ['category-detail'] })
     async store(
@@ -57,6 +75,10 @@ export class CategoryController {
         return this.service.create(data);
     }
 
+    /**
+     * 更新分类
+     * @param data
+     */
     @Patch()
     @SerializeOptions({ groups: ['category-detail'] })
     async update(
@@ -66,6 +88,10 @@ export class CategoryController {
         return this.service.update(data);
     }
 
+    /**
+     * 批量删除分类
+     * @param data
+     */
     @Delete()
     @SerializeOptions({ groups: ['category-list'] })
     async delete(
@@ -76,6 +102,10 @@ export class CategoryController {
         return this.service.delete(ids, trash);
     }
 
+    /**
+     * 批量恢复分类
+     * @param data
+     */
     @Patch('restore')
     @SerializeOptions({ groups: ['category-list'] })
     async restore(
