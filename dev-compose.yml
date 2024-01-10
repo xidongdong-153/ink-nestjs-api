@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678910
+      MYSQL_DATABASE: ink_apps
+      MYSQL_USER: xdd-manager
+      MYSQL_PASSWORD: 12345678910
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    environment:
+      MEILI_MASTER_KEY: 12345678910
+    ports:
+      - "7700:7700"
+    volumes:
+      - meilisearch_data:/data.ms
+
+volumes:
+  mysql_data:
+  meilisearch_data:
